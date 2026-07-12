@@ -1,3 +1,18 @@
 @use "./variables.scss" as *;
 
 // put your custom CSS here!
+pre {
+  white-space: pre-wrap !important;
+  word-break: break-word;
+}
+
+html[saved-theme="dark"] pre {
+  background-color: #2a1b2d !important;
+  /* Глубокий сливовый/аметистовый */
+  border: 1px solid #412e45 !important;
+}
+
+code {
+  white-space: pre-wrap !important;
+  word-break: break-word;
+}
