@@ -20,4 +20,4 @@ title: Добро пожаловать на Фронтир
 > 
 > Этот интерактивный лист персонажа спроектирован исключительно под светлое оформление.
 
-<button onclick="window.location.href='/static/SWADE_Interactive_Sheet.html'" style="padding: 10px 15px; background-color: #334155; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold;">📋 Открыть Интерактивный Чаршит (с автосохранением)</button>
+<button onclick="window.location.href='./static/SWADE_Interactive_Sheet.html'" style="padding: 10px 15px; background-color: #334155; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold;">📋 Открыть Интерактивный Чаршит (с автосохранением)</button>
