@@ -1,0 +1,1931 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>SWADE Интерактивный Лист Персонажа</title>
+    <style>
+        /* Базовые стили для браузера */
+        @import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&family=Roboto:wght@400;500;700&display=swap');
+        
+        :root {
+            --background-primary: #ffffff;
+            --background-secondary: #f8fafc;
+            --text-normal: #1e293b;
+            --text-muted: #64748b;
+            --text-faint: #94a3b8;
+            --background-modifier-border: #cbd5e1;
+        }
+
+        body {
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        /* Кнопки экспорта/импорта */
+        .cs-floating-panel {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+        }
+        .cs-btn {
+            background: #334155;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: background 0.2s;
+        }
+        .cs-btn:hover {
+            background: #1e293b;
+        }
+
+        @media print {
+            body {
+                background-color: white;
+                padding: 0;
+                display: block;
+                /* ПРИНУДИТЕЛЬНАЯ ПЕЧАТЬ ЦВЕТОВ И РАМОК В CHROME/SAFARI */
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+            .cs-floating-panel {
+                display: none !important;
+            }
+            .swade-sheet {
+                box-shadow: none !important;
+                margin: 0 !important;
+                border: none !important;
+                border-radius: 0 !important;
+                width: 100% !important;
+                max-width: none !important;
+                padding: 0 !important;
+            }
+            
+            /* Жесткое дублирование рамок для таблиц при печати на всякий случай */
+            td {
+                border-bottom: 1px solid #cbd5e1 !important;
+            }
+            input[type="text"] {
+                border-bottom: 1px dashed #cbd5e1 !important;
+            }
+        }
+
+        /* Встраиваем оригинальный CSS из Obsidian */
+/* ============================================================
+   SWADE Character Sheet — Obsidian CSS Snippet
+   Файл: swade-charsheet.css
+   Положить в: .obsidian/snippets/ и включить в настройках
+   ============================================================ 
+*/
+
+/* ── Custom Properties ────────────────────────────────────── */
+.swade-sheet {
+  --cs-bg: var(--background-primary);
+  --cs-bg-secondary: var(--background-secondary);
+  --cs-text: var(--text-normal);
+  --cs-text-muted: var(--text-muted);
+  --cs-text-faint: var(--text-faint);
+  --cs-border: var(--background-modifier-border);
+  --cs-accent: #0284c7;
+  --cs-accent-teal: #0d9488;
+  --cs-accent-bg: rgba(2, 132, 199, 0.08);
+  --cs-header-bg: #334155;
+  --cs-header-text: #f8fafc;
+  --cs-radius: 4px;
+  --cs-gap: 6px;
+  --cs-font: "Segoe UI", system-ui, -apple-system, sans-serif;
+  --cs-font-size: 13px;
+  --cs-font-size-sm: 12px;
+  --cs-font-size-xs: 10px;
+  --cs-label-weight: 600;
+}
+
+/* ── Base Reset ───────────────────────────────────────────── */
+.swade-sheet {
+  font-family: var(--cs-font);
+  font-size: var(--cs-font-size);
+  color: var(--cs-text);
+  line-height: 1.3;
+  max-width: 210mm;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.swade-sheet *,
+.swade-sheet *::before,
+.swade-sheet *::after {
+  box-sizing: border-box;
+}
+
+/* ── Page Container ───────────────────────────────────────── */
+.cs-page {
+  background: var(--cs-bg);
+  border: 1px solid var(--cs-border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 20px;
+  min-height: 277mm;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Section Headers ──────────────────────────────────────── */
+.cs-section-title {
+  background: var(--cs-header-bg);
+  color: var(--cs-header-text);
+  font-size: var(--cs-font-size);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 4px 8px;
+  margin: 0 0 var(--cs-gap) 0;
+  border-radius: var(--cs-radius);
+  text-align: center;
+}
+
+.cs-section-title-sm {
+  background: var(--cs-accent);
+  color: #fff;
+  font-size: var(--cs-font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 3px 6px;
+  margin: 0 0 4px 0;
+  border-radius: var(--cs-radius);
+  text-align: center;
+}
+
+/* ── Global Input Styles ──────────────────────────────────── */
+.swade-sheet input[type="text"],
+.swade-sheet input[type="number"] {
+  background: var(--cs-accent-bg);
+  border: 1px solid var(--cs-border);
+  border-radius: var(--cs-radius);
+  color: var(--cs-text);
+  font-family: var(--cs-font);
+  font-size: var(--cs-font-size);
+  padding: 2px 4px;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.swade-sheet input[type="text"]:focus,
+.swade-sheet input[type="number"]:focus {
+  border-color: var(--cs-accent);
+  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
+}
+
+.swade-sheet input[type="text"]::placeholder,
+.swade-sheet input[type="number"]::placeholder {
+  color: var(--cs-text-faint);
+  font-style: italic;
+  opacity: 0.7;
+}
+
+/* Remove borders from inputs inside tables to look like pure text */
+.swade-sheet table input[type="text"],
+.swade-sheet table input[type="number"] {
+  border: none !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.swade-sheet textarea {
+  background: var(--cs-accent-bg);
+  border: 1px solid var(--cs-border);
+  border-radius: var(--cs-radius);
+  color: var(--cs-text);
+  font-family: var(--cs-font);
+  font-size: var(--cs-font-size);
+  padding: 4px 6px;
+  outline: none;
+  width: 100%;
+  resize: vertical;
+  line-height: 1.4;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.swade-sheet textarea:focus {
+  border-color: var(--cs-accent);
+  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
+}
+
+.swade-sheet textarea::placeholder {
+  color: var(--cs-text-faint);
+  font-style: italic;
+  opacity: 0.7;
+}
+
+/* ── Checkbox Styles ──────────────────────────────────────── */
+.swade-sheet input[type="checkbox"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  border: 2px solid var(--cs-accent);
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.15s, border-color 0.15s;
+  vertical-align: middle;
+}
+
+.swade-sheet input[type="checkbox"]:checked {
+  background: var(--cs-accent);
+  border-color: var(--cs-accent);
+}
+
+.swade-sheet input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  background: #fff;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.swade-sheet input[type="checkbox"]:hover {
+  border-color: var(--cs-accent-teal);
+}
+
+/* ── HEADER (Page 1) ──────────────────────────────────────── */
+.cs-header {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 0.6fr 0.6fr 0.6fr 0.6fr;
+  gap: var(--cs-gap);
+  padding: 8px;
+  margin-bottom: 8px;
+  background: var(--cs-accent-bg);
+  border: 1px solid var(--cs-border);
+  border-radius: var(--cs-radius);
+}
+
+.cs-header-field {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  border-right: 1px solid var(--cs-border);
+  padding-right: var(--cs-gap);
+}
+
+.cs-header-field:last-child {
+  border-right: none;
+  padding-right: 0;
+}
+
+.cs-header-field label {
+  font-size: var(--cs-font-size-xs);
+  font-weight: var(--cs-label-weight);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--cs-accent);
+}
+
+.cs-header-field input {
+  height: 24px;
+}
+
+/* ── MAIN 3-COLUMN GRID (Page 1) ──────────────────────────── */
+.cs-main-grid {
+  display: grid;
+  grid-template-columns: 0.77fr 1fr 1fr;
+  gap: 4px;
+  align-items: start;
+}
+.cs-col-1, .cs-col-2 {
+  border-right: 1px solid var(--cs-border);
+  padding-right: 8px;
+}
+.cs-col-3 {
+  border-right: none;
+  padding-right: 0;
+  grid-column: 3;
+  grid-row: 1 / span 2;
+}
+
+.cs-powers-block {
+  grid-column: 1 / span 2;
+  grid-row: 2;
+  border-top: 1px solid var(--cs-border);
+  padding-top: var(--cs-gap);
+  margin-bottom: 0;
+}
+
+/* ── BOTTOM WIDE TABLES (Page 1) ──────────────────────────── */
+.cs-bottom-tables {
+  margin-top: var(--cs-gap);
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  gap: var(--cs-gap);
+}
+
+.cs-bottom-tables > div {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.cs-bottom-tables table {
+  /* Убрано height: 100%, чтобы строки не становились гигантскими */
+}
+
+.cs-table-title {
+  background: var(--cs-accent);
+  color: var(--cs-bg);
+  font-weight: 800;
+  text-transform: uppercase;
+  padding: 3px 6px;
+  font-size: 13px;
+  letter-spacing: 1px;
+  border-radius: var(--cs-radius) var(--cs-radius) 0 0;
+  text-align: center;
+}
+
+/* ── Column 1: Attributes ─────────────────────────────────── */
+.cs-attributes-block {
+  margin-bottom: var(--cs-gap);
+}
+
+.cs-attr-row {
+  display: grid;
+  grid-template-columns: 1fr 50px;
+  gap: 3px;
+  align-items: center;
+  margin-bottom: 3px;
+}
+
+.cs-attr-label {
+  font-size: var(--cs-font-size-sm);
+  font-weight: var(--cs-label-weight);
+  color: var(--cs-text);
+  padding-left: 2px;
+}
+
+.cs-attr-row input {
+  text-align: center;
+  font-weight: 700;
+  height: 22px;
+  font-size: var(--cs-font-size);
+}
+
+/* ── Column 1: Skills ─────────────────────────────────────── */
+.cs-skills-block {
+  margin-bottom: var(--cs-gap);
+}
+
+.cs-skill-row {
+  display: grid;
+  grid-template-columns: 1fr 40px;
+  gap: 3px;
+  align-items: center;
+  margin-bottom: 2px;
+}
+
+.cs-skill-row input {
+  height: 19px;
+  font-size: var(--cs-font-size-sm);
+}
+
+.cs-skill-row input:last-child {
+  text-align: center;
+  font-weight: 700;
+}
+
+/* ── Column 2 & 3: Hindrances & Innate ────────────────────── */
+.cs-innate-block,
+.cs-hindrances-block {
+  margin-bottom: var(--cs-gap);
+}
+
+.cs-text-row {
+  margin-bottom: 2px;
+}
+
+.cs-text-row input {
+  width: 100%;
+  height: 19px;
+  font-size: var(--cs-font-size-sm);
+}
+
+/* ── Column 2: Edges & Advances ───────────────────────────── */
+.cs-advances-block {
+  margin-bottom: var(--cs-gap);
+}
+
+.cs-rank-group {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-bottom: 3px;
+}
+
+.cs-rank-label {
+  font-size: var(--cs-font-size-xs);
+  font-weight: 700;
+  color: var(--cs-accent);
+  min-width: 14px;
+  text-align: center;
+}
+
+.cs-rank-slot {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+}
+
+.cs-rank-slot input[type="checkbox"] {
+  width: 13px;
+  height: 13px;
+  min-width: 13px;
+  border-width: 1.5px;
+}
+
+.cs-rank-slot input[type="checkbox"]:checked::after {
+  width: 5px;
+  height: 5px;
+}
+
+.cs-rank-slot input[type="text"] {
+  height: 19px;
+  font-size: var(--cs-font-size-sm);
+  flex: 1;
+}
+
+/* ── Column 2: Derived Stats ──────────────────────────────── */
+.cs-derived-block {
+  margin-bottom: var(--cs-gap);
+}
+
+.cs-derived-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 4px;
+}
+
+.cs-derived-item {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  text-align: center;
+}
+
+.cs-derived-item label {
+  font-size: var(--cs-font-size-xs);
+  font-weight: var(--cs-label-weight);
+  text-transform: uppercase;
+  color: var(--cs-accent);
+}
+
+.cs-derived-item input {
+  text-align: center;
+  font-weight: 700;
+  height: 24px;
+  font-size: 13px;
+  border: 2px solid var(--cs-accent);
+}
+
+/* ── Column 2: Horizontal Trackers ────────────────────────── */
+.cs-trackers-horizontal {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  border: 1px solid var(--cs-border);
+  border-radius: var(--cs-radius);
+  padding: 4px;
+  margin-bottom: var(--cs-gap);
+}
+
+.cs-tracker-side {
+  display: flex;
+  align-items: center;
+}
+
+.cs-tracker-wounds {
+  justify-content: space-evenly;
+  padding-right: 12px;
+}
+
+.cs-tracker-fatigue {
+  justify-content: space-evenly;
+  padding-left: 12px;
+}
+
+.cs-tracker-title {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 10px;
+  color: var(--cs-text-faint);
+  margin: 0 4px;
+  white-space: nowrap;
+}
+
+.cs-tracker-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+.cs-tracker-box label {
+  font-size: 10px;
+  font-weight: bold;
+}
+
+.cs-tracker-incap-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 0 16px;
+  border-left: 1px dashed var(--cs-border);
+  border-right: 1px dashed var(--cs-border);
+}
+
+.cs-tracker-incap-center .cs-tracker-label-danger {
+  font-weight: bold;
+  color: var(--cs-accent);
+  font-size: 10px;
+  text-transform: uppercase;
+  text-align: center;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+/* ── Column 1 & 2: Powers ─────────────────────────────────── */
+.cs-powers-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.cs-powers-table th {
+  background: var(--cs-header-bg);
+  color: var(--cs-header-text);
+  font-size: var(--cs-font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 3px 4px;
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+
+.cs-powers-table th:first-child {
+  border-radius: var(--cs-radius) 0 0 0;
+  text-align: left;
+}
+
+.cs-powers-table th:last-child {
+  border-radius: 0 var(--cs-radius) 0 0;
+}
+
+.cs-powers-table td {
+  padding: 1px;
+}
+
+.cs-powers-table td input {
+  height: 19px;
+  font-size: var(--cs-font-size-sm);
+}
+
+.cs-powers-table td:first-child input {
+  font-weight: 600;
+}
+
+.cs-powers-table .cs-col-ps,
+.cs-powers-table .cs-col-dist,
+.cs-powers-table .cs-col-dur {
+  width: 42px;
+}
+
+.cs-powers-table .cs-col-ps input,
+.cs-powers-table .cs-col-dist input,
+.cs-powers-table .cs-col-dur input {
+  text-align: center;
+}
+
+/* ── BOTTOM WIDE TABLES (Page 1) ──────────────────────────── */
+.cs-combat-arsenal {
+  margin-top: 0;
+}
+
+.cs-weapons-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.cs-weapons-table th {
+  background: var(--cs-header-bg);
+  color: var(--cs-header-text);
+  font-size: var(--cs-font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 3px 4px;
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+
+/* Колонки Оружия */
+.cs-weapons-table th:nth-child(2),
+.cs-weapons-table th:nth-child(4),
+.cs-weapons-table th:nth-child(5),
+.cs-weapons-table th:nth-child(6) {
+  width: 6%;
+}
+.cs-weapons-table th:nth-child(3) {
+  width: 12%;
+}
+.cs-weapons-table th:nth-child(7) {
+  width: auto;
+}
+.cs-weapons-table .cs-col-wpn-name {
+  width: 25%;
+}
+
+.cs-weapons-table td,
+.cs-weapons-table th {
+  border: 1px solid var(--cs-border);
+}
+
+.cs-weapons-table th:first-child {
+  border-radius: var(--cs-radius) 0 0 0;
+  text-align: left;
+}
+
+.cs-weapons-table th:last-child {
+  border-radius: 0 var(--cs-radius) 0 0;
+}
+
+.cs-weapons-table td {
+  padding: 1px;
+}
+
+.cs-weapons-table td input {
+  height: 19px;
+  font-size: var(--cs-font-size-sm);
+}
+
+.cs-weapons-table .cs-col-wpn-name {
+  width: 25%;
+}
+
+.cs-weapons-table .cs-col-sm {
+  width: 11%;
+}
+
+.cs-weapons-table .cs-col-sm input {
+  text-align: center;
+}
+
+.cs-weapons-table .cs-col-notes {
+  width: 20%;
+}
+
+/* ── Column 3: Gear Table ─────────────────────────────────── */
+.cs-gear-block {
+  margin-bottom: var(--cs-gap);
+}
+
+.cs-gear-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.cs-gear-table th {
+  background: var(--cs-header-bg);
+  color: var(--cs-header-text);
+  font-size: var(--cs-font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 3px 4px;
+  text-align: left;
+  letter-spacing: 0.5px;
+}
+
+.cs-gear-table th:first-child {
+  border-radius: var(--cs-radius) 0 0 0;
+}
+
+.cs-gear-table th:last-child {
+  border-radius: 0 var(--cs-radius) 0 0;
+  text-align: center;
+}
+
+.cs-gear-table td {
+  padding: 1px;
+}
+
+.cs-gear-table td input {
+  height: 19px;
+  font-size: var(--cs-font-size-sm);
+}
+
+.cs-gear-table .cs-col-weight {
+  width: 50px;
+}
+
+.cs-gear-table .cs-col-weight input {
+  text-align: center;
+}
+
+/* ── Column 3: Wound & Fatigue Trackers ───────────────────── */
+.cs-tracker-block {
+  margin-bottom: var(--cs-gap);
+}
+
+.cs-tracker-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 0;
+  border-bottom: 1px solid var(--cs-border);
+}
+
+.cs-tracker-row:last-child {
+  border-bottom: none;
+}
+
+.cs-tracker-label {
+  font-size: var(--cs-font-size-sm);
+  font-weight: var(--cs-label-weight);
+  min-width: 60px;
+  color: var(--cs-text);
+}
+
+.cs-tracker-label-danger {
+  font-size: var(--cs-font-size-xs);
+  font-weight: 700;
+  color: #dc2626;
+  min-width: 60px;
+}
+
+.cs-tracker-checks {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ── Dual trackers side-by-side ───────────────────────────── */
+.cs-trackers-dual {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+/* ── PAGE 2: Backstory ────────────────────────────────────── */
+.cs-backstory-block textarea {
+  min-height: 120px;
+  width: 100%;
+  font-size: var(--cs-font-size);
+}
+
+/* ── PAGE 2: Transport ────────────────────────────────────── */
+.cs-page2-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  align-items: start;
+}
+
+.cs-transport-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.cs-transport-field {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.cs-transport-field label {
+  font-size: var(--cs-font-size-xs);
+  font-weight: var(--cs-label-weight);
+  text-transform: uppercase;
+  color: var(--cs-accent);
+}
+
+.cs-transport-field input {
+  height: 22px;
+}
+
+.cs-transport-field-wide {
+  grid-column: span 2;
+}
+
+/* ── PAGE 2: Vehicle Weapons ──────────────────────────────── */
+.cs-vweapons-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 6px;
+}
+
+.cs-vweapons-table th {
+  background: var(--cs-header-bg);
+  color: var(--cs-header-text);
+  font-size: var(--cs-font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 3px 4px;
+  text-align: center;
+  letter-spacing: 0.3px;
+}
+
+.cs-vweapons-table th:first-child {
+  border-radius: var(--cs-radius) 0 0 0;
+  text-align: left;
+}
+
+.cs-vweapons-table th:last-child {
+  border-radius: 0 var(--cs-radius) 0 0;
+}
+
+.cs-vweapons-table td {
+  padding: 1px;
+}
+
+.cs-vweapons-table td input {
+  height: 19px;
+  font-size: var(--cs-font-size-sm);
+}
+
+.cs-vweapons-table .cs-col-sm input {
+  text-align: center;
+}
+
+/* ── PAGE 2: Cargo ────────────────────────────────────────── */
+.cs-cargo-block {
+  margin-bottom: var(--cs-gap);
+}
+
+.cs-cargo-block textarea {
+  min-height: 60px;
+  font-size: var(--cs-font-size-sm);
+}
+
+/* ── PAGE 2: Notes ────────────────────────────────────────── */
+.cs-notes-block textarea {
+  min-height: 80px;
+  font-size: var(--cs-font-size-sm);
+}
+
+/* ── PAGE 3: Allies Grid ──────────────────────────────────── */
+.cs-allies-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  align-items: start;
+}
+
+.cs-ally-card {
+  border: 1px solid var(--cs-border);
+  border-radius: 6px;
+  padding: 8px;
+  background: var(--cs-accent-bg);
+}
+
+.cs-ally-header {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.cs-ally-header-field {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.cs-ally-header-field label {
+  font-size: var(--cs-font-size-xs);
+  font-weight: var(--cs-label-weight);
+  text-transform: uppercase;
+  color: var(--cs-accent);
+}
+
+.cs-ally-header-field input {
+  height: 22px;
+}
+
+.cs-ally-derived {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.cs-ally-skills-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 6px;
+}
+
+.cs-ally-skills-table th {
+  background: var(--cs-accent);
+  color: #fff;
+  font-size: var(--cs-font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 4px;
+  text-align: left;
+  letter-spacing: 0.5px;
+}
+
+.cs-ally-skills-table th:first-child {
+  border-radius: var(--cs-radius) 0 0 0;
+}
+
+.cs-ally-skills-table th:last-child {
+  border-radius: 0 var(--cs-radius) 0 0;
+  text-align: center;
+}
+
+.cs-ally-skills-table td {
+  padding: 1px;
+}
+
+.cs-ally-skills-table td input {
+  height: 18px;
+  font-size: var(--cs-font-size-sm);
+}
+
+.cs-ally-skills-table .cs-col-level {
+  width: 50px;
+}
+
+.cs-ally-skills-table .cs-col-level input {
+  text-align: center;
+}
+
+.cs-ally-gear-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 6px;
+}
+
+.cs-ally-gear-table th {
+  background: var(--cs-accent);
+  color: #fff;
+  font-size: var(--cs-font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 4px;
+  text-align: left;
+}
+
+.cs-ally-gear-table th:first-child {
+  border-radius: var(--cs-radius) 0 0 0;
+}
+
+.cs-ally-gear-table th:last-child {
+  border-radius: 0 var(--cs-radius) 0 0;
+  text-align: center;
+}
+
+.cs-ally-gear-table td {
+  padding: 1px;
+}
+
+.cs-ally-gear-table td input {
+  height: 18px;
+  font-size: var(--cs-font-size-sm);
+}
+
+.cs-ally-gear-table .cs-col-weight {
+  width: 50px;
+}
+
+.cs-ally-gear-table .cs-col-weight input {
+  text-align: center;
+}
+
+/* Транспорт трекер */
+.cs-transport-tracker {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid var(--cs-border);
+  border-radius: var(--cs-radius);
+  padding: 4px 10px;
+  margin-bottom: var(--cs-gap);
+}
+
+/* Трекер союзников */
+.cs-ally-tracker {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  border: 1px solid var(--cs-border);
+  border-radius: var(--cs-radius);
+  padding: 4px;
+  margin-top: 6px;
+}
+
+/* ── Utility ──────────────────────────────────────────────── */
+.cs-spacer {
+  height: 6px;
+}
+
+.cs-mb {
+  margin-bottom: var(--cs-gap);
+}
+
+/* ============================================================
+   @MEDIA PRINT — A4 Optimized
+   ============================================================ 
+*/
+
+@media print {
+
+  /* Hide Obsidian UI */
+  .app-container .sidebar-toggle-button,
+  .workspace-ribbon,
+  .status-bar,
+  .titlebar,
+  .view-header {
+    display: none !important;
+  }
+
+  /* Force page size */
+  @page {
+    size: A4 portrait;
+    margin: 8mm 10mm;
+  }
+
+  /* Sheet reset */
+  .swade-sheet {
+    max-width: 100%;
+    margin: 0;
+    --cs-font-size: 11px;
+    --cs-font-size-sm: 10px;
+    --cs-font-size-xs: 9px;
+  }
+
+  .cs-page {
+    background: #fff !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: auto;
+    box-shadow: none !important;
+  }
+
+  /* Page breaks */
+  .cs-page-break {
+    page-break-before: always;
+    break-before: page;
+  }
+
+  .cs-page {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Force colors */
+  .swade-sheet,
+  .swade-sheet * {
+    color: #000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Keep header backgrounds */
+  .cs-section-title,
+  .cs-section-title-sm {
+    background: #334155 !important;
+    color: #fff !important;
+  }
+
+  .cs-powers-table th,
+  .cs-weapons-table th,
+  .cs-gear-table th,
+  .cs-vweapons-table th,
+  .cs-ally-skills-table th,
+  .cs-ally-gear-table th {
+    background: #334155 !important;
+    color: #fff !important;
+  }
+
+  /* Input styles for print */
+  .swade-sheet input[type="text"],
+  .swade-sheet input[type="number"] {
+    background: transparent !important;
+    border: none !important;
+    border-bottom: 1px dashed #666 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 1px 2px !important;
+    color: #000 !important;
+  }
+
+  .swade-sheet textarea {
+    background: transparent !important;
+    border: none !important;
+    border-bottom: 1px dashed #666 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    resize: none !important;
+    overflow: hidden !important;
+    color: #000 !important;
+  }
+
+  /* Checkbox for print */
+  .swade-sheet input[type="checkbox"] {
+    border: 2px solid #333 !important;
+    background: transparent !important;
+  }
+
+  .swade-sheet input[type="checkbox"]:checked {
+    background: #333 !important;
+    border-color: #333 !important;
+  }
+
+  /* Ally card */
+  .cs-ally-card {
+    background: transparent !important;
+    border: 1px solid #999 !important;
+  }
+
+  /* Tracker borders */
+  .cs-tracker-row {
+    border-bottom-color: #ccc !important;
+  }
+
+  /* Header border */
+  .cs-header {
+    border-bottom-color: #333 !important;
+  }
+
+  /* Derived stats borders */
+  .cs-derived-item input {
+    border: 2px solid #333 !important;
+  }
+
+  /* Block integrity */
+  .cs-attributes-block,
+  .cs-skills-block,
+  .cs-hindrances-block,
+  .cs-advances-block,
+  .cs-derived-block,
+  .cs-powers-block,
+  .cs-weapons-block,
+  .cs-gear-block,
+  .cs-tracker-block,
+  .cs-backstory-block,
+  .cs-transport-block,
+  .cs-cargo-block,
+  .cs-notes-block {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* No placeholders in print */
+  .swade-sheet input::placeholder,
+  .swade-sheet textarea::placeholder {
+    color: transparent !important;
+  }
+}
+
+        /* ВОССТАНОВЛЕНИЕ ДЕФОЛТНЫХ СТИЛЕЙ ТАБЛИЦ OBSIDIAN */
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        /* В Obsidian все td имеют рамку снизу по умолчанию */
+        td {
+            border-bottom: 1px solid var(--cs-border);
+        }
+        /* Для ячеек с инпутами в наших таблицах делаем пунктир */
+        .cs-gear-table td, 
+        .cs-ally-gear-table td, 
+        .cs-vweapons-table td,
+        .cs-ally-skills-table td {
+            border-bottom: 1px dashed var(--cs-border);
+        }
+        /* Исключаем рамку у последнего ряда, если не нужно */
+        tbody tr:last-child td {
+            border-bottom: 1px solid var(--cs-border);
+        }
+
+        /* Фикс для браузера */
+        .swade-sheet {
+            background: white;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            padding: 15mm;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            width: 210mm;
+            max-width: 100%;
+            box-sizing: border-box;
+            
+            --cs-font-size: 13px;
+            --cs-font-size-sm: 11px;
+            --cs-font-size-xs: 10px;
+        }
+
+        input[type="checkbox"] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--cs-border);
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+            outline: none;
+            position: relative;
+        }
+        input[type="checkbox"]:checked {
+            background: var(--cs-accent);
+            border-color: var(--cs-accent);
+        }
+        
+        .cs-tracker-label-danger + input[type="checkbox"]:checked {
+            background: #ef4444;
+            border-color: #ef4444;
+        }
+        
+        .cs-page-break {
+            page-break-before: always;
+            margin-top: 40px;
+            border-top: 2px dashed #94a3b8;
+            padding-top: 40px;
+            position: relative;
+        }
+        .cs-page-break::before {
+            content: "СТРАНИЦА";
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #f0f2f5;
+            padding: 0 15px;
+            color: #94a3b8;
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+        @media print {
+            .cs-page-break {
+                margin-top: 0;
+                border-top: none;
+                padding-top: 0;
+            }
+            .cs-page-break::before {
+                display: none;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="cs-floating-panel">
+        <a class="cs-btn" href="/" style="text-decoration: none; background: #0ea5e9;">🏠 На сайт</a>
+        <button class="cs-btn" id="btn-clear" style="background: #ef4444;">🗑 Очистить</button>
+        <button class="cs-btn" id="btn-print" style="background: #10b981;">🖨️ Печать</button>
+        <button class="cs-btn" id="btn-export">📥 Экспорт данных</button>
+        <button class="cs-btn" id="btn-import">📤 Импорт данных</button>
+        <input type="file" id="file-import" style="display: none;" accept=".json">
+    </div>
+
+
+    <!-- Вставляем сам чаршит -->
+    <div class="swade-sheet">
+
+<div class="cs-page cs-page-1">
+<!-- ШАПКА -->
+<div class="cs-header">
+  <div class="cs-header-field"><label>Имя</label><input type="text" placeholder="Иван Мамаев"></div>
+  <div class="cs-header-field"><label>Вид</label><input type="text" placeholder="Человек"></div>
+  <div class="cs-header-field"><label>Ранг</label><input type="text" placeholder="Новичок"></div>
+  <div class="cs-header-field"><label>Рост</label><input type="text" placeholder="180 см"></div>
+  <div class="cs-header-field"><label>Вес</label><input type="text" placeholder="80 кг"></div>
+  <div class="cs-header-field"><label>Фишки</label><input type="number" placeholder="3" min="0"></div>
+  <div class="cs-header-field"><label>Решимость</label><input type="number" placeholder="0" min="0"></div>
+</div>
+<!-- ОСНОВНАЯ СЕТКА 3 КОЛОНКИ -->
+<div class="cs-main-grid">
+<!-- КОЛОНКА 1: Характеристики + Навыки -->
+<div class="cs-col-1">
+<div class="cs-attributes-block">
+  <div class="cs-section-title">Характеристики</div>
+  <div class="cs-attr-row"><span class="cs-attr-label">Ловкость</span><input type="text" placeholder="d4"></div>
+  <div class="cs-attr-row"><span class="cs-attr-label">Смекалка</span><input type="text" placeholder="d4"></div>
+  <div class="cs-attr-row"><span class="cs-attr-label">Характер</span><input type="text" placeholder="d4"></div>
+  <div class="cs-attr-row"><span class="cs-attr-label">Сила</span><input type="text" placeholder="d4"></div>
+  <div class="cs-attr-row"><span class="cs-attr-label">Выносливость</span><input type="text" placeholder="d4"></div>
+</div>
+<div class="cs-skills-block">
+  <div class="cs-section-title">Навыки</div>
+  <div class="cs-skill-row"><input type="text" placeholder="Атлетика"><input type="text" placeholder="d6"></div>
+  <div class="cs-skill-row"><input type="text" placeholder="Внимание"><input type="text" placeholder="d8"></div>
+  <div class="cs-skill-row"><input type="text" placeholder="Выживание"><input type="text" placeholder="d4"></div>
+  <div class="cs-skill-row"><input type="text" placeholder="Драка"><input type="text" placeholder="d8"></div>
+  <div class="cs-skill-row"><input type="text" placeholder="Запугивание"><input type="text" placeholder="d6"></div>
+  <div class="cs-skill-row"><input type="text" placeholder="Знание"><input type="text" placeholder="d4"></div>
+  <div class="cs-skill-row"><input type="text" placeholder="Лечение"><input type="text" placeholder="d6"></div>
+  <div class="cs-skill-row"><input type="text" placeholder="Оккультизм"><input type="text" placeholder="d4"></div>
+  <div class="cs-skill-row"><input type="text" placeholder="Провокация"><input type="text" placeholder="d6"></div>
+  <div class="cs-skill-row"><input type="text" placeholder="Ремонт"><input type="text" placeholder="d4"></div>
+  <div class="cs-skill-row"><input type="text" placeholder="Стрельба"><input type="text" placeholder="d8"></div>
+  <div class="cs-skill-row"><input type="text" placeholder="Убеждение"><input type="text" placeholder="d6"></div>
+  <div class="cs-skill-row"><input type="text" placeholder="Вождение"><input type="text" placeholder="d4"></div>
+  <div class="cs-skill-row"><input type="text" placeholder="Взлом"><input type="text" placeholder="d4"></div>
+  <div class="cs-skill-row"><input type="text" placeholder="Наука"><input type="text" placeholder="d4"></div>
+  <div class="cs-skill-row"><input type="text" placeholder="Скрытность"><input type="text" placeholder="d6"></div>
+  <div class="cs-skill-row"><input type="text" placeholder="Электроника"><input type="text" placeholder="d4"></div>
+  <div class="cs-skill-row"><input type="text" placeholder="Колдовство"><input type="text" placeholder="d6"></div>
+  <div class="cs-skill-row"><input type="text" placeholder=""><input type="text" placeholder=""></div>
+  <div class="cs-skill-row"><input type="text" placeholder=""><input type="text" placeholder=""></div>
+</div>
+</div>
+<!-- КОЛОНКА 2: Производные + Трекеры + Снаряжение -->
+<div class="cs-col-2">
+<div class="cs-derived-block">
+  <div class="cs-section-title">Производные</div>
+  <div class="cs-derived-grid">
+    <div class="cs-derived-item"><label>Шаг</label><input type="text" placeholder="6"></div>
+    <div class="cs-derived-item"><label>Защита</label><input type="text" placeholder="7"></div>
+    <div class="cs-derived-item"><label>Стойкость</label><input type="text" placeholder="8(2)"></div>
+  </div>
+</div>
+<div class="cs-trackers-horizontal">
+  <div class="cs-tracker-side cs-tracker-wounds">
+    <span class="cs-tracker-title">Раны</span>
+    <div class="cs-tracker-box"><label>-1</label><input type="checkbox"></div>
+    <div class="cs-tracker-box"><label>-2</label><input type="checkbox"></div>
+    <div class="cs-tracker-box"><label>-3</label><input type="checkbox"></div>
+  </div>
+  
+  <div class="cs-tracker-incap-center">
+    <span class="cs-tracker-label-danger">При смерти</span>
+    <input type="checkbox">
+  </div>
+
+  <div class="cs-tracker-side cs-tracker-fatigue">
+    <div class="cs-tracker-box"><label>-1</label><input type="checkbox"></div>
+    <div class="cs-tracker-box"><label>-2</label><input type="checkbox"></div>
+    <span class="cs-tracker-title">Усталость</span>
+  </div>
+</div>
+<div class="cs-gear-block">
+  <table class="cs-gear-table">
+    <thead>
+      <tr><th>Предмет</th><th class="cs-col-weight">Вес</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><input type="text" placeholder="Кольчуга"></td><td class="cs-col-weight"><input type="text" placeholder="12"></td></tr>
+      <tr><td><input type="text" placeholder="Рюкзак"></td><td class="cs-col-weight"><input type="text" placeholder="1"></td></tr>
+      <tr><td><input type="text" placeholder="Факел ×3"></td><td class="cs-col-weight"><input type="text" placeholder="3"></td></tr>
+      <tr><td><input type="text" placeholder="Аптечка"></td><td class="cs-col-weight"><input type="text" placeholder="2"></td></tr>
+      <tr><td><input type="text" placeholder="Верёвка (10 м)"></td><td class="cs-col-weight"><input type="text" placeholder="7"></td></tr>
+      <tr><td><input type="text" placeholder=""></td><td class="cs-col-weight"><input type="text" placeholder=""></td></tr>
+      <tr><td><input type="text" placeholder=""></td><td class="cs-col-weight"><input type="text" placeholder=""></td></tr>
+      <tr><td><input type="text" placeholder=""></td><td class="cs-col-weight"><input type="text" placeholder=""></td></tr>
+      <tr><td><input type="text" placeholder=""></td><td class="cs-col-weight"><input type="text" placeholder=""></td></tr>
+      <tr><td><input type="text" placeholder=""></td><td class="cs-col-weight"><input type="text" placeholder=""></td></tr>
+      <tr><td><input type="text" placeholder=""></td><td class="cs-col-weight"><input type="text" placeholder=""></td></tr>
+      <tr><td><input type="text" placeholder=""></td><td class="cs-col-weight"><input type="text" placeholder=""></td></tr>
+      <tr><td><input type="text" placeholder=""></td><td class="cs-col-weight"><input type="text" placeholder=""></td></tr>
+      <tr><td><input type="text" placeholder=""></td><td class="cs-col-weight"><input type="text" placeholder=""></td></tr>
+      <tr><td><input type="text" placeholder=""></td><td class="cs-col-weight"><input type="text" placeholder=""></td></tr>
+      <tr><td><input type="text" placeholder=""></td><td class="cs-col-weight"><input type="text" placeholder=""></td></tr>
+      <tr><td><input type="text" placeholder=""></td><td class="cs-col-weight"><input type="text" placeholder=""></td></tr>
+      <tr><td><input type="text" placeholder=""></td><td class="cs-col-weight"><input type="text" placeholder=""></td></tr>
+      <tr><td><input type="text" placeholder=""></td><td class="cs-col-weight"><input type="text" placeholder=""></td></tr>
+      <tr><td><input type="text" placeholder=""></td><td class="cs-col-weight"><input type="text" placeholder=""></td></tr>
+    </tbody>
+  </table>
+</div>
+</div>
+<!-- КОЛОНКА 3: Изъяны + Черты + Повышения -->
+<div class="cs-col-3">
+<div class="cs-hindrances-block">
+  <div class="cs-section-title">Изъяны</div>
+  <div class="cs-text-row"><input type="text" placeholder="Самоуверенный (бол.)"></div>
+  <div class="cs-text-row"><input type="text" placeholder="Любопытный (бол.)"></div>
+  <div class="cs-text-row"><input type="text" placeholder="Верный (мал.)"></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+</div>
+<div class="cs-innate-block">
+  <div class="cs-section-title">Черты</div>
+  <div class="cs-text-row"><input type="text" placeholder="Особенности вида"></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+</div>
+<div class="cs-advances-block">
+  <div class="cs-section-title">Повышения</div>
+  <div class="cs-rank-group"><span class="cs-rank-label" title="Новичок">Н</span><div class="cs-rank-slot"><input type="checkbox"><input type="text" placeholder="Черта / повышение"></div></div>
+  <div class="cs-rank-group"><span class="cs-rank-label"></span><div class="cs-rank-slot"><input type="checkbox"><input type="text" placeholder=""></div></div>
+  <div class="cs-rank-group"><span class="cs-rank-label"></span><div class="cs-rank-slot"><input type="checkbox"><input type="text" placeholder=""></div></div>
+  <div class="cs-rank-group"><span class="cs-rank-label" title="Закалённый">З</span><div class="cs-rank-slot"><input type="checkbox"><input type="text" placeholder=""></div></div>
+  <div class="cs-rank-group"><span class="cs-rank-label"></span><div class="cs-rank-slot"><input type="checkbox"><input type="text" placeholder=""></div></div>
+  <div class="cs-rank-group"><span class="cs-rank-label"></span><div class="cs-rank-slot"><input type="checkbox"><input type="text" placeholder=""></div></div>
+  <div class="cs-rank-group"><span class="cs-rank-label"></span><div class="cs-rank-slot"><input type="checkbox"><input type="text" placeholder=""></div></div>
+  <div class="cs-rank-group"><span class="cs-rank-label" title="Ветеран">В</span><div class="cs-rank-slot"><input type="checkbox"><input type="text" placeholder=""></div></div>
+  <div class="cs-rank-group"><span class="cs-rank-label"></span><div class="cs-rank-slot"><input type="checkbox"><input type="text" placeholder=""></div></div>
+  <div class="cs-rank-group"><span class="cs-rank-label"></span><div class="cs-rank-slot"><input type="checkbox"><input type="text" placeholder=""></div></div>
+  <div class="cs-rank-group"><span class="cs-rank-label"></span><div class="cs-rank-slot"><input type="checkbox"><input type="text" placeholder=""></div></div>
+  <div class="cs-rank-group"><span class="cs-rank-label" title="Герой">Г</span><div class="cs-rank-slot"><input type="checkbox"><input type="text" placeholder=""></div></div>
+  <div class="cs-rank-group"><span class="cs-rank-label"></span><div class="cs-rank-slot"><input type="checkbox"><input type="text" placeholder=""></div></div>
+  <div class="cs-rank-group"><span class="cs-rank-label"></span><div class="cs-rank-slot"><input type="checkbox"><input type="text" placeholder=""></div></div>
+  <div class="cs-rank-group"><span class="cs-rank-label"></span><div class="cs-rank-slot"><input type="checkbox"><input type="text" placeholder=""></div></div>
+  <div class="cs-rank-group"><span class="cs-rank-label" title="Легенда">Л</span><div class="cs-rank-slot"><input type="checkbox"><input type="text" placeholder=""></div></div>
+  <div class="cs-rank-group"><span class="cs-rank-label"></span><div class="cs-rank-slot"><input type="checkbox"><input type="text" placeholder=""></div></div>
+  <div class="cs-rank-group"><span class="cs-rank-label"></span><div class="cs-rank-slot"><input type="checkbox"><input type="text" placeholder=""></div></div>
+  <div class="cs-rank-group"><span class="cs-rank-label"></span><div class="cs-rank-slot"><input type="checkbox"><input type="text" placeholder=""></div></div>
+</div>
+</div>
+<!-- СИЛЫ: Растягиваются на 1 и 2 колонки -->
+<div class="cs-powers-block">
+  <table class="cs-powers-table">
+    <thead>
+      <tr><th>Сила</th><th class="cs-col-ps">ПС</th><th class="cs-col-dist">Дист.</th><th class="cs-col-dur">Длит.</th><th>Эффект</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><input type="text" placeholder="Снаряд"></td><td class="cs-col-ps"><input type="text" placeholder="1"></td><td class="cs-col-dist"><input type="text" placeholder="12/24"></td><td class="cs-col-dur"><input type="text" placeholder="мгн."></td><td><input type="text" placeholder="2d6 урона"></td></tr>
+      <tr><td><input type="text" placeholder="Доспех"></td><td class="cs-col-ps"><input type="text" placeholder="2"></td><td class="cs-col-dist"><input type="text" placeholder="кас."></td><td class="cs-col-dur"><input type="text" placeholder="5"></td><td><input type="text" placeholder="+2 броня"></td></tr>
+      <tr><td><input type="text" placeholder="Исцеление"></td><td class="cs-col-ps"><input type="text" placeholder="3"></td><td class="cs-col-dist"><input type="text" placeholder="кас."></td><td class="cs-col-dur"><input type="text" placeholder="мгн."></td><td><input type="text" placeholder="1 ранение"></td></tr>
+      <tr><td><input type="text" placeholder=""></td><td class="cs-col-ps"><input type="text" placeholder=""></td><td class="cs-col-dist"><input type="text" placeholder=""></td><td class="cs-col-dur"><input type="text" placeholder=""></td><td><input type="text" placeholder=""></td></tr>
+      <tr><td><input type="text" placeholder=""></td><td class="cs-col-ps"><input type="text" placeholder=""></td><td class="cs-col-dist"><input type="text" placeholder=""></td><td class="cs-col-dur"><input type="text" placeholder=""></td><td><input type="text" placeholder=""></td></tr>
+    </tbody>
+  </table>
+</div>
+</div><!-- /cs-main-grid -->
+<!-- ОРУЖИЕ: В самом низу -->
+<div class="cs-bottom-tables">
+<div class="cs-combat-arsenal">
+  <table class="cs-weapons-table">
+    <thead>
+      <tr><th class="cs-col-wpn-name">Оружие</th><th class="cs-col-sm">Дист.</th><th class="cs-col-sm">Урон</th><th class="cs-col-sm">ББ</th><th class="cs-col-sm">СкС</th><th class="cs-col-sm">Вес</th><th class="cs-col-notes">Заметки</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="cs-col-wpn-name"><input type="text" placeholder="Длинный меч"></td><td class="cs-col-sm"><input type="text" placeholder="—"></td><td class="cs-col-sm"><input type="text" placeholder="Сил+d8"></td><td class="cs-col-sm"><input type="text" placeholder="—"></td><td class="cs-col-sm"><input type="text" placeholder="1"></td><td class="cs-col-sm"><input type="text" placeholder="4"></td><td class="cs-col-notes"><input type="text" placeholder=""></td></tr>
+      <tr><td class="cs-col-wpn-name"><input type="text" placeholder="Кольт .45"></td><td class="cs-col-sm"><input type="text" placeholder="12/24"></td><td class="cs-col-sm"><input type="text" placeholder="2d6+1"></td><td class="cs-col-sm"><input type="text" placeholder="1"></td><td class="cs-col-sm"><input type="text" placeholder="1"></td><td class="cs-col-sm"><input type="text" placeholder="2"></td><td class="cs-col-notes"><input type="text" placeholder="ББ 1"></td></tr>
+      <tr><td class="cs-col-wpn-name"><input type="text" placeholder=""></td><td class="cs-col-sm"><input type="text" placeholder=""></td><td class="cs-col-sm"><input type="text" placeholder=""></td><td class="cs-col-sm"><input type="text" placeholder=""></td><td class="cs-col-sm"><input type="text" placeholder=""></td><td class="cs-col-sm"><input type="text" placeholder=""></td><td class="cs-col-notes"><input type="text" placeholder=""></td></tr>
+      <tr><td class="cs-col-wpn-name"><input type="text" placeholder=""></td><td class="cs-col-sm"><input type="text" placeholder=""></td><td class="cs-col-sm"><input type="text" placeholder=""></td><td class="cs-col-sm"><input type="text" placeholder=""></td><td class="cs-col-sm"><input type="text" placeholder=""></td><td class="cs-col-sm"><input type="text" placeholder=""></td><td class="cs-col-notes"><input type="text" placeholder=""></td></tr>
+      <tr><td class="cs-col-wpn-name"><input type="text" placeholder=""></td><td class="cs-col-sm"><input type="text" placeholder=""></td><td class="cs-col-sm"><input type="text" placeholder=""></td><td class="cs-col-sm"><input type="text" placeholder=""></td><td class="cs-col-sm"><input type="text" placeholder=""></td><td class="cs-col-sm"><input type="text" placeholder=""></td><td class="cs-col-notes"><input type="text" placeholder=""></td></tr>
+      <tr><td class="cs-col-wpn-name"><input type="text" placeholder=""></td><td class="cs-col-sm"><input type="text" placeholder=""></td><td class="cs-col-sm"><input type="text" placeholder=""></td><td class="cs-col-sm"><input type="text" placeholder=""></td><td class="cs-col-sm"><input type="text" placeholder=""></td><td class="cs-col-sm"><input type="text" placeholder=""></td><td class="cs-col-notes"><input type="text" placeholder=""></td></tr>
+    </tbody>
+  </table>
+</div>
+</div>
+</div><!-- /cs-page-1 -->
+<!-- 
+     ═══════════════════════════════════════════════════════════
+     СТРАНИЦА 2 — РАСШИРЕННЫЙ ЛИСТ
+     ═══════════════════════════════════════════════════════════
+-->
+<div class="cs-page cs-page-2 cs-page-break">
+<!-- Предыстория -->
+<div class="cs-backstory-block" style="margin-bottom: 20px;">
+  <div class="cs-section-title">Предыстория</div>
+  <div class="cs-text-row"><input type="text" placeholder="Опишите прошлое вашего персонажа..."></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+</div>
+<!-- Транспорт + Вооружение/Груз -->
+<div class="cs-transport-section">
+  <div class="cs-section-title">Транспорт</div>
+  <div class="cs-page2-grid" style="margin-top: 10px;">
+    <!-- Левая колонка: Характеристики и Вооружение -->
+    <div class="cs-transport-block">
+      <div class="cs-transport-stats">
+        <div class="cs-transport-field cs-transport-field-wide">
+          <label>Название</label>
+          <input type="text" placeholder="«Буревестник»">
+        </div>
+        <div class="cs-transport-field">
+          <label>Размер</label>
+          <input type="text" placeholder="6">
+        </div>
+        <div class="cs-transport-field">
+          <label>Манёвренность</label>
+          <input type="text" placeholder="+1">
+        </div>
+        <div class="cs-transport-field">
+          <label>Предельная скорость</label>
+          <input type="text" placeholder="48 кмч">
+        </div>
+        <div class="cs-transport-field">
+          <label>Прочность</label>
+          <input type="text" placeholder="12(3)">
+        </div>
+        <div class="cs-transport-field cs-transport-field-wide">
+          <label>КиП (Команда и Пассажиры)</label>
+          <input type="text" placeholder="1+5">
+        </div>
+      </div>
+      <!-- Вооружение транспорта -->
+      <div class="cs-weapons-block" style="margin-top: 10px;">
+        <table class="cs-vweapons-table">
+          <thead>
+            <tr>
+              <th>Оружие</th>
+              <th class="cs-col-sm">Дист.</th>
+              <th class="cs-col-sm">Урон</th>
+              <th class="cs-col-sm">ББ</th>
+              <th class="cs-col-sm">СкС</th>
+              <th>Заметки</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input type="text" placeholder="Баллиста"></td>
+              <td class="cs-col-sm"><input type="text" placeholder="15/30"></td>
+              <td class="cs-col-sm"><input type="text" placeholder="3d6"></td>
+              <td class="cs-col-sm"><input type="text" placeholder="2"></td>
+              <td class="cs-col-sm"><input type="text" placeholder="1/2"></td>
+              <td><input type="text" placeholder="Тяж. оружие"></td>
+            </tr>
+            <tr>
+              <td><input type="text" placeholder=""></td>
+              <td class="cs-col-sm"><input type="text" placeholder=""></td>
+              <td class="cs-col-sm"><input type="text" placeholder=""></td>
+              <td class="cs-col-sm"><input type="text" placeholder=""></td>
+              <td class="cs-col-sm"><input type="text" placeholder=""></td>
+              <td><input type="text" placeholder=""></td>
+            </tr>
+            <tr>
+              <td><input type="text" placeholder=""></td>
+              <td class="cs-col-sm"><input type="text" placeholder=""></td>
+              <td class="cs-col-sm"><input type="text" placeholder=""></td>
+              <td class="cs-col-sm"><input type="text" placeholder=""></td>
+              <td class="cs-col-sm"><input type="text" placeholder=""></td>
+              <td><input type="text" placeholder=""></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <!-- Правая колонка: Повреждения + Груз -->
+    <div class="cs-transport-right">
+      <!-- Повреждения транспорта -->
+      <div class="cs-tracker-block">
+        <div class="cs-section-title-sm">Повреждения</div>
+        <div class="cs-transport-tracker" style="display: flex; justify-content: space-evenly; align-items: flex-end; padding-bottom: 8px;">
+          <div class="cs-tracker-box"><label>–1</label><input type="checkbox"></div>
+          <div class="cs-tracker-box"><label>–2</label><input type="checkbox"></div>
+          <div class="cs-tracker-box"><label>–3</label><input type="checkbox"></div>
+          <div class="cs-tracker-incap-center">
+            <span class="cs-tracker-label-danger" style="margin-bottom: 2px;">Сломан</span>
+            <input type="checkbox">
+          </div>
+        </div>
+      </div>
+      <!-- Груз -->
+      <div class="cs-cargo-block" style="margin-top: 10px;">
+        <div class="cs-section-title-sm">Груз</div>
+        <div class="cs-text-row"><input type="text" placeholder="Бочки с водой ×3, ящик с провизией…"></div>
+        <div class="cs-text-row"><input type="text" placeholder=""></div>
+        <div class="cs-text-row"><input type="text" placeholder=""></div>
+        <div class="cs-text-row"><input type="text" placeholder=""></div>
+        <div class="cs-text-row"><input type="text" placeholder=""></div>
+        <div class="cs-text-row"><input type="text" placeholder=""></div>
+        <div class="cs-text-row"><input type="text" placeholder=""></div>
+        <div class="cs-text-row"><input type="text" placeholder=""></div>
+      </div>
+    </div><!-- /cs-transport-right -->
+  </div><!-- /cs-page2-grid -->
+  <!-- Заметки транспорта на всю ширину -->
+  <div class="cs-notes-block" style="margin-top: 10px;">
+    <div class="cs-section-title-sm">Заметки</div>
+    <div class="cs-text-row"><input type="text" placeholder="Дополнительная информация о транспорте, апгрейды..."></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+  </div>
+</div><!-- /cs-transport-section -->
+</div><!-- /cs-page-2 -->
+
+<!-- 
+     ═══════════════════════════════════════════════════════════
+     СТРАНИЦА 3 — ДРУЗЬЯ И СОЮЗНИКИ
+     ═══════════════════════════════════════════════════════════
+-->
+<div class="cs-page cs-page-3 cs-page-break">
+<div class="cs-section-title">Друзья и союзники</div>
+<div class="cs-allies-grid">
+<!-- ─── Союзник 1 ───────────────────────────────────────────── -->
+<div class="cs-ally-card">
+  <div class="cs-ally-header">
+    <div class="cs-ally-header-field">
+      <label>Имя</label>
+      <input type="text" placeholder="Карина «Ведьма»">
+    </div>
+  </div>
+  <!-- Производные -->
+  <div class="cs-ally-derived">
+    <div class="cs-derived-item">
+      <label>Шаг</label>
+      <input type="text" placeholder="6">
+    </div>
+    <div class="cs-derived-item">
+      <label>Защита</label>
+      <input type="text" placeholder="5">
+    </div>
+    <div class="cs-derived-item">
+      <label>Стойкость</label>
+      <input type="text" placeholder="5">
+    </div>
+  </div>
+  <!-- Навыки -->
+  <table class="cs-ally-skills-table">
+    <thead>
+      <tr><th>Навык</th><th class="cs-col-level">Уровень</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><input type="text" placeholder="Драка"></td><td class="cs-col-level"><input type="text" placeholder="d6"></td></tr>
+      <tr><td><input type="text" placeholder="Стрельба"></td><td class="cs-col-level"><input type="text" placeholder="d8"></td></tr>
+      <tr><td><input type="text" placeholder="Внимание"></td><td class="cs-col-level"><input type="text" placeholder="d6"></td></tr>
+      <tr><td><input type="text" placeholder="Колдовство"></td><td class="cs-col-level"><input type="text" placeholder="d8"></td></tr>
+      <tr><td><input type="text" placeholder=""></td><td class="cs-col-level"><input type="text" placeholder=""></td></tr>
+      <tr><td><input type="text" placeholder=""></td><td class="cs-col-level"><input type="text" placeholder=""></td></tr>
+      <tr><td><input type="text" placeholder=""></td><td class="cs-col-level"><input type="text" placeholder=""></td></tr>
+      <tr><td><input type="text" placeholder=""></td><td class="cs-col-level"><input type="text" placeholder=""></td></tr>
+    </tbody>
+  </table>
+  <!-- Изъяны -->
+  <div class="cs-ally-hindrances cs-mb">
+    <div class="cs-section-title-sm">Изъяны</div>
+    <div class="cs-text-row"><input type="text" placeholder="Любопытный (бол.)"></div>
+    <div class="cs-text-row"><input type="text" placeholder=""></div>
+    <div class="cs-text-row"><input type="text" placeholder=""></div>
+    <div class="cs-text-row"><input type="text" placeholder=""></div>
+  </div>
+  <!-- Черты -->
+  <div class="cs-ally-edges cs-mb">
+    <div class="cs-section-title-sm">Черты</div>
+    <div class="cs-text-row"><input type="text" placeholder="Мистический дар (магия)"></div>
+    <div class="cs-text-row"><input type="text" placeholder=""></div>
+    <div class="cs-text-row"><input type="text" placeholder=""></div>
+    <div class="cs-text-row"><input type="text" placeholder=""></div>
+  </div>
+  <!-- Снаряжение -->
+  <table class="cs-ally-gear-table">
+    <thead>
+      <tr><th>Предмет</th><th class="cs-col-weight">Вес</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><input type="text" placeholder="Посох"></td><td class="cs-col-weight"><input type="text" placeholder="4"></td></tr>
+      <tr><td><input type="text" placeholder="Кожаная куртка"></td><td class="cs-col-weight"><input type="text" placeholder="5"></td></tr>
+      <tr><td><input type="text" placeholder=""></td><td class="cs-col-weight"><input type="text" placeholder=""></td></tr>
+      <tr><td><input type="text" placeholder=""></td><td class="cs-col-weight"><input type="text" placeholder=""></td></tr>
+      <tr><td><input type="text" placeholder=""></td><td class="cs-col-weight"><input type="text" placeholder=""></td></tr>
+      <tr><td><input type="text" placeholder=""></td><td class="cs-col-weight"><input type="text" placeholder=""></td></tr>
+    </tbody>
+  </table>
+  <!-- Мини-трекер -->
+  <div class="cs-ally-tracker">
+    <span class="cs-tracker-title">Усталость</span>
+    <div class="cs-tracker-box"><label>–1</label><input type="checkbox"></div>
+    <div class="cs-tracker-box"><label>–2</label><input type="checkbox"></div>
+    <span class="cs-tracker-title">Раны</span>
+  </div>
+</div>
+<!-- ─── Союзник 2 ──────────────────────────────────────────── -->
+<div class="cs-ally-card">
+  <div class="cs-ally-header">
+    <div class="cs-ally-header-field">
+      <label>Имя</label>
+      <input type="text" placeholder="Борис «Молот»">
+    </div>
+  </div>
+  <!-- Производные -->
+  <div class="cs-ally-derived">
+    <div class="cs-derived-item">
+      <label>Шаг</label>
+      <input type="text" placeholder="5">
+    </div>
+    <div class="cs-derived-item">
+      <label>Защита</label>
+      <input type="text" placeholder="6">
+    </div>
+    <div class="cs-derived-item">
+      <label>Стойкость</label>
+      <input type="text" placeholder="7(1)">
+    </div>
+  </div>
+  <!-- Навыки -->
+  <table class="cs-ally-skills-table">
+    <thead>
+      <tr><th>Навык</th><th class="cs-col-level">Уровень</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><input type="text" placeholder="Драка"></td><td class="cs-col-level"><input type="text" placeholder="d8"></td></tr>
+      <tr><td><input type="text" placeholder="Атлетика"></td><td class="cs-col-level"><input type="text" placeholder="d6"></td></tr>
+      <tr><td><input type="text" placeholder="Выживание"></td><td class="cs-col-level"><input type="text" placeholder="d6"></td></tr>
+      <tr><td><input type="text" placeholder="Внимание"></td><td class="cs-col-level"><input type="text" placeholder="d4"></td></tr>
+      <tr><td><input type="text" placeholder=""></td><td class="cs-col-level"><input type="text" placeholder=""></td></tr>
+      <tr><td><input type="text" placeholder=""></td><td class="cs-col-level"><input type="text" placeholder=""></td></tr>
+      <tr><td><input type="text" placeholder=""></td><td class="cs-col-level"><input type="text" placeholder=""></td></tr>
+      <tr><td><input type="text" placeholder=""></td><td class="cs-col-level"><input type="text" placeholder=""></td></tr>
+    </tbody>
+  </table>
+  <!-- Изъяны -->
+  <div class="cs-ally-hindrances cs-mb">
+    <div class="cs-section-title-sm">Изъяны</div>
+    <div class="cs-text-row"><input type="text" placeholder="Медлительный (мал.)"></div>
+    <div class="cs-text-row"><input type="text" placeholder=""></div>
+    <div class="cs-text-row"><input type="text" placeholder=""></div>
+    <div class="cs-text-row"><input type="text" placeholder=""></div>
+  </div>
+  <!-- Черты -->
+  <div class="cs-ally-edges cs-mb">
+    <div class="cs-section-title-sm">Черты</div>
+    <div class="cs-text-row"><input type="text" placeholder="Громила"></div>
+    <div class="cs-text-row"><input type="text" placeholder=""></div>
+    <div class="cs-text-row"><input type="text" placeholder=""></div>
+    <div class="cs-text-row"><input type="text" placeholder=""></div>
+  </div>
+  <!-- Снаряжение -->
+  <table class="cs-ally-gear-table">
+    <thead>
+      <tr><th>Предмет</th><th class="cs-col-weight">Вес</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><input type="text" placeholder="Боевой молот"></td><td class="cs-col-weight"><input type="text" placeholder="6"></td></tr>
+      <tr><td><input type="text" placeholder="Плотная одежда"></td><td class="cs-col-weight"><input type="text" placeholder="3"></td></tr>
+      <tr><td><input type="text" placeholder=""></td><td class="cs-col-weight"><input type="text" placeholder=""></td></tr>
+      <tr><td><input type="text" placeholder=""></td><td class="cs-col-weight"><input type="text" placeholder=""></td></tr>
+      <tr><td><input type="text" placeholder=""></td><td class="cs-col-weight"><input type="text" placeholder=""></td></tr>
+      <tr><td><input type="text" placeholder=""></td><td class="cs-col-weight"><input type="text" placeholder=""></td></tr>
+    </tbody>
+  </table>
+  <!-- Мини-трекер -->
+  <div class="cs-ally-tracker">
+    <span class="cs-tracker-title">Усталость</span>
+    <div class="cs-tracker-box"><label>–1</label><input type="checkbox"></div>
+    <div class="cs-tracker-box"><label>–2</label><input type="checkbox"></div>
+    <span class="cs-tracker-title">Раны</span>
+  </div>
+</div>
+</div><!-- /cs-allies-grid -->
+<div class="cs-global-notes-block" style="margin-top: 20px;">
+  <div class="cs-section-title">Общие заметки</div>
+  <div class="cs-text-row"><input type="text" placeholder="Общие записи, контакты, квесты..."></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+  <div class="cs-text-row"><input type="text" placeholder=""></div>
+</div>
+</div><!-- /cs-page-3 -->
+</div><!-- /swade-sheet -->
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const inputs = document.querySelectorAll('input, textarea');
+            
+            inputs.forEach((input, index) => {
+                if(input.type === 'file') return;
+                const savedValue = localStorage.getItem(`swade_charsheet_field_${index}`);
+                if (savedValue !== null) {
+                    if (input.type === 'checkbox') {
+                        input.checked = savedValue === 'true';
+                    } else {
+                        input.value = savedValue;
+                    }
+                }
+                
+                input.addEventListener('input', () => {
+                    if (input.type === 'checkbox') {
+                        localStorage.setItem(`swade_charsheet_field_${index}`, input.checked);
+                    } else {
+                        localStorage.setItem(`swade_charsheet_field_${index}`, input.value);
+                    }
+                });
+            });
+
+            document.getElementById('btn-export').addEventListener('click', () => {
+                let data = {};
+                inputs.forEach((input, index) => {
+                    if(input.type === 'file') return;
+                    if (input.type === 'checkbox') {
+                        data[index] = input.checked;
+                    } else {
+                        data[index] = input.value;
+                    }
+                });
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'swade_character.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+
+            const fileInput = document.getElementById('file-import');
+            document.getElementById('btn-import').addEventListener('click', () => {
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        inputs.forEach((input, index) => {
+                            if(input.type === 'file') return;
+                            if (data[index] !== undefined) {
+                                if (input.type === 'checkbox') {
+                                    input.checked = data[index];
+                                    localStorage.setItem(`swade_charsheet_field_${index}`, input.checked);
+                                } else {
+                                    input.value = data[index];
+                                    localStorage.setItem(`swade_charsheet_field_${index}`, input.value);
+                                }
+                            }
+                        });
+                        alert('Данные персонажа успешно загружены!');
+                    } catch (err) {
+                        alert('Ошибка чтения файла!');
+                        console.error(err);
+                    }
+                };
+                reader.readAsText(file);
+            });
+
+            document.getElementById('btn-clear').addEventListener('click', () => {
+                if (confirm('Вы уверены, что хотите полностью ОЧИСТИТЬ весь лист персонажа? Это действие нельзя отменить!')) {
+                    inputs.forEach((input, index) => {
+                        if(input.type === 'file') return;
+                        if (input.type === 'checkbox') {
+                            input.checked = false;
+                        } else {
+                            input.value = '';
+                        }
+                        localStorage.removeItem(`swade_charsheet_field_${index}`);
+                    });
+                }
+            });
+
+            document.getElementById('btn-print').addEventListener('click', () => {
+                window.print();
+            });
+        });
+    </script>
+</body>
+</html>
